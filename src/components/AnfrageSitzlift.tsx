@@ -342,35 +342,9 @@ const guidanceData: GuidanceSection[] = [
   }
 ];
 
-/** Weiterleiten-Modus: Standard-Abschluss (Anbieter-Kontakt) */
+/** Weiterleiten-Modus: Text unter „Abschluss“ in der Gesprächshilfe */
 const ABSCHLUSS_WEITERLEITEN_DEFAULT =
   'Vielen Dank. Ich werde nun für Sie die Kapazitäten prüfen und Ihnen den Kontakt zu Sonilift GmbH, SANA Treppenlifte und Expertlift GmbH herstellen. Dafür reserviere ich für Sie jetzt die kostenfreien Erstgespräche. Die Anbieter werden sich nun in den nächsten Minuten, spätestens im Laufe des Tages bei Ihnen melden. Bleiben Sie deshalb bitte telefonisch erreichbar, um die nächsten Schritte abzusprechen.';
-
-/** Alternative Abschlüsse, wenn kein passender Anbieter – Demo per Toggle */
-const ABSCHLUSS_TEXT_WARTELISTE = `Ich habe Sie jetzt auf die Warteliste gesetzt.
-
-Sobald sich bei einem passenden Partner etwas ergibt, meldet sich dieser direkt bei Ihnen.
-
-Parallel behalten wir Ihre Situation im Blick und unterstützen Sie weiterhin, sobald sich etwas verändert.`;
-
-const ABSCHLUSS_TEXT_TOOLS_INFOS = `Ich sende Ihnen im Anschluss passende Informationen und hilfreiche Tools zu.
-
-Wir bleiben in Kontakt und schauen gemeinsam, wie sich Ihre Situation entwickelt und welche nächsten Schritte sinnvoll sind.`;
-
-/** Version 2 – alternative Formulierungen (bei Bedarf in der Datei anpassen) */
-const ABSCHLUSS_V2_WEITERLEITEN_DEFAULT = `Vielen Dank. Wir haben in unserem Netzwerk passende Anbieter für das Produkt/die Produkte []. Für Produkt [x] sind das die Anbieter [yz]. Für Produkt [y] sind das die Anbieter [xy].
-
-Ich werde Ihre Kontaktdaten nun einmal an die genannten Anbieter übermitteln. Diese werden sich dann in den nächsten Minuten oder Stunden telefonisch bei Ihnen melden. Deshalb ist wichtig, dass Sie telefonisch erreichbar bleiben.`;
-
-const ABSCHLUSS_V2_TEXT_WARTELISTE = `Sie stehen bei uns auf der Warteliste.
-
-Sobald sich bei einem passenden Partner etwas ergibt, meldet sich dieser direkt bei Ihnen.
-
-Wir behalten Ihre Situation mit im Blick und unterstützen Sie, sobald sich etwas verändert.`;
-
-const ABSCHLUSS_V2_TEXT_TOOLS_INFOS = `Ich schicke Ihnen gleich passende Informationen und hilfreiche Tools zu.
-
-Wir bleiben in Kontakt und klären gemeinsam, wie sich Ihre Situation entwickelt und welche nächsten Schritte für Sie sinnvoll sind.`;
 
 const Gespraechsguidance: React.FC<{
   klientDisplayName: string;
@@ -447,25 +421,6 @@ const Gespraechsguidance: React.FC<{
     vorwandbehandlungIndex >= 0 ? vorwandbehandlungIndex : null
   );
   const [openEntryKey, setOpenEntryKey] = useState<string | null>(null);
-  /** Demo: Textversion Abschluss (1 / 2) */
-  const [abschlussTextVersion, setAbschlussTextVersion] = useState<1 | 2>(1);
-  /** Demo: Fall Standard / Warteliste / Tools */
-  const [demoAbschlussVariant, setDemoAbschlussVariant] = useState<
-    'default' | 'warteliste' | 'tools'
-  >('default');
-
-  const abschlussDemoText =
-    abschlussTextVersion === 1
-      ? {
-          default: ABSCHLUSS_WEITERLEITEN_DEFAULT,
-          warteliste: ABSCHLUSS_TEXT_WARTELISTE,
-          tools: ABSCHLUSS_TEXT_TOOLS_INFOS
-        }
-      : {
-          default: ABSCHLUSS_V2_WEITERLEITEN_DEFAULT,
-          warteliste: ABSCHLUSS_V2_TEXT_WARTELISTE,
-          tools: ABSCHLUSS_V2_TEXT_TOOLS_INFOS
-        };
 
   const handleGroupSummaryClick = (index: number) => {
     setOpenGroupIndex((prev) => (prev === index ? null : index));
@@ -514,90 +469,20 @@ const Gespraechsguidance: React.FC<{
                   {group.title}
                 </summary>
                 {group.items && group.items.length > 0 && (
-                  isWeiterleitenMode && group.title === 'Abschluss' ? (
-                    <div className="guidance-collapsible-content">
+                  <div className="guidance-group-items guidance-collapsible-content">
+                    {group.items.map((item, itemIndex) => (
                       <div
-                        className="guidance-abschluss-demo"
-                        role="group"
-                        aria-label="Abschluss Demo: Version und Fall"
+                        key={itemIndex}
+                        className={`guidance-group-item${
+                          isWeiterleitenMode && group.title === 'Abschluss'
+                            ? ' guidance-group-item-preline'
+                            : ''
+                        }`}
                       >
-                        <div
-                          className="guidance-abschluss-version-compact"
-                          role="group"
-                          aria-label="Textversion"
-                        >
-                          <span className="guidance-abschluss-version-hint">Texte</span>
-                          <div className="guidance-abschluss-version-segment">
-                            <button
-                              type="button"
-                              className={
-                                abschlussTextVersion === 1 ? 'is-active' : ''
-                              }
-                              onClick={() => setAbschlussTextVersion(1)}
-                            >
-                              V1
-                            </button>
-                            <button
-                              type="button"
-                              className={
-                                abschlussTextVersion === 2 ? 'is-active' : ''
-                              }
-                              onClick={() => setAbschlussTextVersion(2)}
-                            >
-                              V2
-                            </button>
-                          </div>
-                        </div>
-                        <span className="guidance-abschluss-demo-label">Demo</span>
-                        <div className="guidance-abschluss-demo-toggle">
-                          <button
-                            type="button"
-                            className={
-                              demoAbschlussVariant === 'default'
-                                ? 'is-active'
-                                : ''
-                            }
-                            onClick={() => setDemoAbschlussVariant('default')}
-                          >
-                            Standard (Anbieter)
-                          </button>
-                          <button
-                            type="button"
-                            className={
-                              demoAbschlussVariant === 'warteliste'
-                                ? 'is-active'
-                                : ''
-                            }
-                            onClick={() => setDemoAbschlussVariant('warteliste')}
-                          >
-                            Nur Warteliste
-                          </button>
-                          <button
-                            type="button"
-                            className={
-                              demoAbschlussVariant === 'tools' ? 'is-active' : ''
-                            }
-                            onClick={() => setDemoAbschlussVariant('tools')}
-                          >
-                            Tools &amp; Infos
-                          </button>
-                        </div>
+                        {item}
                       </div>
-                      <div className="guidance-group-items">
-                        <div className="guidance-group-item guidance-group-item-preline">
-                          {abschlussDemoText[demoAbschlussVariant]}
-                        </div>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="guidance-group-items guidance-collapsible-content">
-                      {group.items.map((item, itemIndex) => (
-                        <div key={itemIndex} className="guidance-group-item">
-                          {item}
-                        </div>
-                      ))}
-                    </div>
-                  )
+                    ))}
+                  </div>
                 )}
                 {group.entries && group.entries.length > 0 && (
                   <div className="guidance-group-entries guidance-collapsible-content">
@@ -690,7 +575,7 @@ const AnfrageSitzlift: React.FC = () => {
   const [isPhoneModalOpen, setIsPhoneModalOpen] = useState(false);
   const [isWeiterleitenModalOpen, setIsWeiterleitenModalOpen] = useState(false);
   /** Abschluss-Check-Popup: Layout-Varianten (Demo/Vorschau) */
-  const [weiterleitenPopupVersion, setWeiterleitenPopupVersion] = useState<1 | 2 | 3>(1);
+  const [weiterleitenPopupVersion, setWeiterleitenPopupVersion] = useState<1 | 2>(1);
   /** Variante 2: Tool-Häkchen; „Kein akuter Bedarf …“ mit festem ✓; „Kontakt-Präferenzen“ nur in derselben Sichtbarkeitslage, optional per Häkchen */
   const [weiterleitenV3Tools, setWeiterleitenV3Tools] = useState({
     pflegegradChecked: true,
@@ -1161,11 +1046,9 @@ const AnfrageSitzlift: React.FC = () => {
           erreichbarkeit.vormittags ||
           erreichbarkeit.nachmittags ||
           erreichbarkeit.abends)
-      : weiterleitenPopupVersion === 2
-        ? weiterleitenV3NachgespraechZustimmungErforderlich
-          ? zustimmungNachgespraechBeratung
-          : true
-        : zustimmungNachgespraechBeratung;
+      : weiterleitenV3NachgespraechZustimmungErforderlich
+        ? zustimmungNachgespraechBeratung
+        : true;
 
   const toggleWeiterleitenV3Pflegegrad = () => {
     setWeiterleitenV3Tools((prev) => ({
@@ -1356,13 +1239,6 @@ const AnfrageSitzlift: React.FC = () => {
                   >
                     2
                   </button>
-                  <button
-                    type="button"
-                    className={weiterleitenPopupVersion === 3 ? 'is-active' : ''}
-                    onClick={() => setWeiterleitenPopupVersion(3)}
-                  >
-                    3
-                  </button>
                 </div>
               </div>
             </div>
@@ -1481,32 +1357,6 @@ const AnfrageSitzlift: React.FC = () => {
             </div>
 
             <div className="weiterleiten-klient-block">
-              <div className="weiterleiten-klient-title">Klient / Interessent</div>
-              <div className="weiterleiten-klient-felder">
-                <div className="weiterleiten-klient-labels">
-                  <span className="weiterleiten-klient-label">Anrede</span>
-                  <span className="weiterleiten-klient-label">Vorname</span>
-                  <span className="weiterleiten-klient-label">Nachname</span>
-                  <span className="weiterleiten-klient-label">E-Mail</span>
-                </div>
-                <div className="weiterleiten-klient-inputs">
-                  <div className="weiterleiten-klient-cell">
-                    <div className="radio-group">
-                      <label><input type="radio" name="weiterleiten-anrede" value="Frau" checked={formData.anrede === 'Frau'} onChange={(e) => setFormData(prev => ({ ...prev, anrede: e.target.value }))} /> Frau</label>
-                      <label><input type="radio" name="weiterleiten-anrede" value="Herr" checked={formData.anrede === 'Herr'} onChange={(e) => setFormData(prev => ({ ...prev, anrede: e.target.value }))} /> Herr</label>
-                    </div>
-                  </div>
-                  <div className="weiterleiten-klient-cell">
-                    <input type="text" value={formData.vorname} onChange={(e) => setFormData(prev => ({ ...prev, vorname: e.target.value }))} placeholder="Vorname" />
-                  </div>
-                  <div className="weiterleiten-klient-cell">
-                    <input type="text" value={formData.nachname} onChange={(e) => setFormData(prev => ({ ...prev, nachname: e.target.value }))} placeholder="Nachname" />
-                  </div>
-                  <div className="weiterleiten-klient-cell">
-                    <input type="email" value={formData.email} onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))} placeholder="E-Mail" />
-                  </div>
-                </div>
-              </div>
               {weiterleitenPopupVersion === 1 && (
                 <div className="weiterleiten-klient-erreichbarkeit">
                   <div className="weiterleiten-options-title">Beste telefonische Erreichbarkeit</div>
