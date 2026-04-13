@@ -1423,33 +1423,35 @@ const AnfrageSitzlift: React.FC = () => {
                   </div>
                 </div>
               )}
-              <div className="weiterleiten-klient-zustimmung">
-                {weiterleitenPopupVersion === 1 && (
-                  <label className={`weiterleiten-consent ${!zustimmungKontaktweitergabe ? 'weiterleiten-option-unchecked' : ''}`}>
+              {!weiterleitenV2EmailStreckeSichtbar && (
+                <div className="weiterleiten-klient-zustimmung">
+                  {weiterleitenPopupVersion === 1 && (
+                    <label className={`weiterleiten-consent ${!zustimmungKontaktweitergabe ? 'weiterleiten-option-unchecked' : ''}`}>
+                      <input
+                        type="checkbox"
+                        checked={zustimmungKontaktweitergabe}
+                        onChange={(e) => setZustimmungKontaktweitergabe(e.target.checked)}
+                      />
+                      Die genannten Anbieter werden Sie in den kommenden Tagen kontaktieren.
+                    </label>
+                  )}
+                  <label
+                    className={`weiterleiten-consent ${!zustimmungNachgespraechBeratung ? 'weiterleiten-option-unchecked' : ''}${weiterleitenIstV2OderV3 && !weiterleitenV3NachgespraechZustimmungErforderlich ? ' weiterleiten-consent--optional' : ''}`}
+                  >
                     <input
                       type="checkbox"
-                      checked={zustimmungKontaktweitergabe}
-                      onChange={(e) => setZustimmungKontaktweitergabe(e.target.checked)}
+                      checked={zustimmungNachgespraechBeratung}
+                      onChange={(e) => setZustimmungNachgespraechBeratung(e.target.checked)}
+                      aria-required={
+                        weiterleitenPopupVersion === 1 ||
+                        (weiterleitenIstV2OderV3 && weiterleitenV3NachgespraechZustimmungErforderlich)
+                      }
                     />
-                    Die genannten Anbieter werden Sie in den kommenden Tagen kontaktieren.
+                    Wir werden uns per E-Mail bei Ihnen melden und in den nächsten Wochen ein Nachgespräch sowie eine weitere
+                    Beratung anbieten.
                   </label>
-                )}
-                <label
-                  className={`weiterleiten-consent ${!zustimmungNachgespraechBeratung ? 'weiterleiten-option-unchecked' : ''}${weiterleitenIstV2OderV3 && !weiterleitenV3NachgespraechZustimmungErforderlich ? ' weiterleiten-consent--optional' : ''}`}
-                >
-                  <input
-                    type="checkbox"
-                    checked={zustimmungNachgespraechBeratung}
-                    onChange={(e) => setZustimmungNachgespraechBeratung(e.target.checked)}
-                    aria-required={
-                      weiterleitenPopupVersion === 1 ||
-                      (weiterleitenIstV2OderV3 && weiterleitenV3NachgespraechZustimmungErforderlich)
-                    }
-                  />
-                  Wir werden uns per E-Mail bei Ihnen melden und in den nächsten Wochen ein Nachgespräch sowie eine weitere
-                  Beratung anbieten.
-                </label>
-              </div>
+                </div>
+              )}
             </div>
 
             <div className="weiterleiten-bottom-grid">
