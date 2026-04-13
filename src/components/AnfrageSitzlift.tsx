@@ -574,8 +574,8 @@ const AnfrageSitzlift: React.FC = () => {
   ]);
   const [isPhoneModalOpen, setIsPhoneModalOpen] = useState(false);
   const [isWeiterleitenModalOpen, setIsWeiterleitenModalOpen] = useState(false);
-  /** Abschluss-Check-Popup: Layout-Varianten (Demo/Vorschau) */
-  const [weiterleitenPopupVersion, setWeiterleitenPopupVersion] = useState<1 | 2>(1);
+  /** Abschluss-Check-Popup: Layout-Varianten (Demo/Vorschau); Variante 3 entspricht zunächst Variante 2 */
+  const [weiterleitenPopupVersion, setWeiterleitenPopupVersion] = useState<1 | 2 | 3>(1);
   /** Variante 2: Tool-Häkchen; „Kein akuter Bedarf …“ mit festem ✓; „Kontakt-Präferenzen“ nur in derselben Sichtbarkeitslage, optional per Häkchen */
   const [weiterleitenV3Tools, setWeiterleitenV3Tools] = useState({
     pflegegradChecked: true,
@@ -752,7 +752,12 @@ const AnfrageSitzlift: React.FC = () => {
   }, [isKlientLoeschenModalOpen, klientLoeschenDemoModus]);
 
   useEffect(() => {
-    if (!isWeiterleitenModalOpen || weiterleitenPopupVersion !== 2) return;
+    if (
+      !isWeiterleitenModalOpen ||
+      (weiterleitenPopupVersion !== 2 && weiterleitenPopupVersion !== 3)
+    ) {
+      return;
+    }
     setWeiterleitenV3Tools({
       pflegegradChecked: true,
       pflegezuschuesseChecked: true,
@@ -1027,15 +1032,22 @@ const AnfrageSitzlift: React.FC = () => {
     return flagMap[countryCode] || null;
   };
 
-  /** Variante 2: „Kein akuter Bedarf: E-Mail-Strecke“ – unveränderte Logik. „Kontakt-Präferenzen“ nutzt dieselbe Sichtbarkeit. */
+  const weiterleitenIstV2OderV3 =
+    weiterleitenPopupVersion === 2 || weiterleitenPopupVersion === 3;
+
+  /** Varianten 2/3: „Kein akuter Bedarf: E-Mail-Strecke“ – gleiche Logik wie bisher bei V2. „Kontakt-Präferenzen“ dieselbe Sichtbarkeit. */
   const weiterleitenV2EmailStreckeSichtbar =
-    weiterleitenPopupVersion === 2 &&
+    weiterleitenIstV2OderV3 &&
     !weiterleitenV3Tools.pflegegradChecked &&
     !weiterleitenV3Tools.pflegezuschuesseChecked;
 
-  /** Variante 2: Nachgespräch/E-Mail-Zustimmung nur Pflicht, wenn mindestens ein Tool angehakt; nur „Kein akuter Bedarf …“ → optional */
+  /** Variante 3: roter Hinweis oberhalb „Abschicken“, wenn „Kein akuter Bedarf: E-Mail-Strecke“ sichtbar ist */
+  const weiterleitenV3BonusWarnungBannerSichtbar =
+    weiterleitenPopupVersion === 3 && weiterleitenV2EmailStreckeSichtbar;
+
+  /** Varianten 2/3: Nachgespräch-Zustimmung nur Pflicht, wenn mindestens ein Tool angehakt (wie V2) */
   const weiterleitenV3NachgespraechZustimmungErforderlich =
-    weiterleitenPopupVersion === 2 &&
+    weiterleitenIstV2OderV3 &&
     (weiterleitenV3Tools.pflegegradChecked || weiterleitenV3Tools.pflegezuschuesseChecked);
 
   const weiterleitenAbschickenEnabled =
@@ -1239,6 +1251,13 @@ const AnfrageSitzlift: React.FC = () => {
                   >
                     2
                   </button>
+                  <button
+                    type="button"
+                    className={weiterleitenPopupVersion === 3 ? 'is-active' : ''}
+                    onClick={() => setWeiterleitenPopupVersion(3)}
+                  >
+                    3
+                  </button>
                 </div>
               </div>
             </div>
@@ -1287,7 +1306,7 @@ const AnfrageSitzlift: React.FC = () => {
               <div className="weiterleiten-anbieter-card selected weiterleiten-tool-card">
                 <div className="anbieter-head">
                   <span className="anbieter-name">Pflegegrad-Rechner</span>
-                  {weiterleitenPopupVersion === 2 ? (
+                  {weiterleitenIstV2OderV3 ? (
                     <button
                       type="button"
                       className={`anbieter-check${weiterleitenV3Tools.pflegegradChecked ? '' : ' anbieter-check--unchecked'}`}
@@ -1307,7 +1326,7 @@ const AnfrageSitzlift: React.FC = () => {
               <div className="weiterleiten-anbieter-card selected weiterleiten-tool-card">
                 <div className="anbieter-head">
                   <span className="anbieter-name">Pflegezuschüsse &amp; -Leistungen</span>
-                  {weiterleitenPopupVersion === 2 ? (
+                  {weiterleitenIstV2OderV3 ? (
                     <button
                       type="button"
                       className={`anbieter-check${weiterleitenV3Tools.pflegezuschuesseChecked ? '' : ' anbieter-check--unchecked'}`}
@@ -1416,13 +1435,16 @@ const AnfrageSitzlift: React.FC = () => {
                   </label>
                 )}
                 <label
-                  className={`weiterleiten-consent ${!zustimmungNachgespraechBeratung ? 'weiterleiten-option-unchecked' : ''}${weiterleitenPopupVersion === 2 && !weiterleitenV3NachgespraechZustimmungErforderlich ? ' weiterleiten-consent--optional' : ''}`}
+                  className={`weiterleiten-consent ${!zustimmungNachgespraechBeratung ? 'weiterleiten-option-unchecked' : ''}${weiterleitenIstV2OderV3 && !weiterleitenV3NachgespraechZustimmungErforderlich ? ' weiterleiten-consent--optional' : ''}`}
                 >
                   <input
                     type="checkbox"
                     checked={zustimmungNachgespraechBeratung}
                     onChange={(e) => setZustimmungNachgespraechBeratung(e.target.checked)}
-                    aria-required={weiterleitenPopupVersion !== 2 || weiterleitenV3NachgespraechZustimmungErforderlich}
+                    aria-required={
+                      weiterleitenPopupVersion === 1 ||
+                      (weiterleitenIstV2OderV3 && weiterleitenV3NachgespraechZustimmungErforderlich)
+                    }
                   />
                   Wir werden uns per E-Mail bei Ihnen melden und in den nächsten Wochen ein Nachgespräch sowie eine weitere
                   Beratung anbieten.
@@ -1449,6 +1471,11 @@ const AnfrageSitzlift: React.FC = () => {
                 {weiterleitenPopupVersion === 1 && (
                   <div className="weiterleiten-note">
                     Super - die umsatzstärkste Anbieterauswahl wurde ausgewählt!
+                  </div>
+                )}
+                {weiterleitenV3BonusWarnungBannerSichtbar && (
+                  <div className="weiterleiten-bonus-warnung-banner" role="alert">
+                    Deine Bonus-Berechtigung verschlechtert sich.
                   </div>
                 )}
                 <div className="weiterleiten-actions">

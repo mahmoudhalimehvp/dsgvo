@@ -3003,6 +3003,20 @@ button.anbieter-check {
   font-weight: 600;
 }
 
+.weiterleiten-bonus-warnung-banner {
+  align-self: stretch;
+  margin: 0;
+  padding: 10px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.35;
+  color: #fff;
+  text-align: center;
+  background: #c62828;
+  border-radius: 6px;
+  box-sizing: border-box;
+}
+
 .weiterleiten-actions {
   display: flex;
   gap: 8px;
