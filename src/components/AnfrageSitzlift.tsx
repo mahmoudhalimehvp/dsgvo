@@ -574,7 +574,7 @@ const AnfrageSitzlift: React.FC = () => {
   ]);
   const [isPhoneModalOpen, setIsPhoneModalOpen] = useState(false);
   const [isWeiterleitenModalOpen, setIsWeiterleitenModalOpen] = useState(false);
-  /** Abschluss-Check-Popup: Layout-Varianten (Demo/Vorschau); Variante 3 entspricht zunächst Variante 2 */
+  /** Abschluss-Check-Popup: Layout-Varianten (Demo/Vorschau); V3: Nachgespräch-Checkbox immer sichtbar und Pflicht, kein Bonus-Hinweis */
   const [weiterleitenPopupVersion, setWeiterleitenPopupVersion] = useState<1 | 2 | 3>(1);
   /** Variante 2: Tool-Häkchen; „Kein akuter Bedarf …“ mit festem ✓; „Kontakt-Präferenzen“ nur in derselben Sichtbarkeitslage, optional per Häkchen */
   const [weiterleitenV3Tools, setWeiterleitenV3Tools] = useState({
@@ -1041,14 +1041,12 @@ const AnfrageSitzlift: React.FC = () => {
     !weiterleitenV3Tools.pflegegradChecked &&
     !weiterleitenV3Tools.pflegezuschuesseChecked;
 
-  /** Variante 3: roter Hinweis oberhalb „Abschicken“, wenn „Kein akuter Bedarf: E-Mail-Strecke“ sichtbar ist */
-  const weiterleitenV3BonusWarnungBannerSichtbar =
-    weiterleitenPopupVersion === 3 && weiterleitenV2EmailStreckeSichtbar;
-
-  /** Varianten 2/3: Nachgespräch-Zustimmung nur Pflicht, wenn mindestens ein Tool angehakt (wie V2) */
-  const weiterleitenV3NachgespraechZustimmungErforderlich =
-    weiterleitenIstV2OderV3 &&
-    (weiterleitenV3Tools.pflegegradChecked || weiterleitenV3Tools.pflegezuschuesseChecked);
+  /** Variante 2: Nachgespräch-Zustimmung nur Pflicht, wenn mindestens ein Tool angehakt. Variante 3: immer Pflicht. */
+  const weiterleitenV2V3NachgespraechZustimmungErforderlich =
+    weiterleitenPopupVersion === 3
+      ? true
+      : weiterleitenIstV2OderV3 &&
+        (weiterleitenV3Tools.pflegegradChecked || weiterleitenV3Tools.pflegezuschuesseChecked);
 
   const weiterleitenAbschickenEnabled =
     weiterleitenPopupVersion === 1
@@ -1058,7 +1056,7 @@ const AnfrageSitzlift: React.FC = () => {
           erreichbarkeit.vormittags ||
           erreichbarkeit.nachmittags ||
           erreichbarkeit.abends)
-      : weiterleitenV3NachgespraechZustimmungErforderlich
+      : weiterleitenV2V3NachgespraechZustimmungErforderlich
         ? zustimmungNachgespraechBeratung
         : true;
 
@@ -1423,7 +1421,9 @@ const AnfrageSitzlift: React.FC = () => {
                   </div>
                 </div>
               )}
-              {!weiterleitenV2EmailStreckeSichtbar && (
+              {(weiterleitenPopupVersion === 1 ||
+                weiterleitenPopupVersion === 3 ||
+                !weiterleitenV2EmailStreckeSichtbar) && (
                 <div className="weiterleiten-klient-zustimmung">
                   {weiterleitenPopupVersion === 1 && (
                     <label className={`weiterleiten-consent ${!zustimmungKontaktweitergabe ? 'weiterleiten-option-unchecked' : ''}`}>
@@ -1435,21 +1435,23 @@ const AnfrageSitzlift: React.FC = () => {
                       Die genannten Anbieter werden Sie in den kommenden Tagen kontaktieren.
                     </label>
                   )}
-                  <label
-                    className={`weiterleiten-consent ${!zustimmungNachgespraechBeratung ? 'weiterleiten-option-unchecked' : ''}${weiterleitenIstV2OderV3 && !weiterleitenV3NachgespraechZustimmungErforderlich ? ' weiterleiten-consent--optional' : ''}`}
-                  >
-                    <input
-                      type="checkbox"
-                      checked={zustimmungNachgespraechBeratung}
-                      onChange={(e) => setZustimmungNachgespraechBeratung(e.target.checked)}
-                      aria-required={
-                        weiterleitenPopupVersion === 1 ||
-                        (weiterleitenIstV2OderV3 && weiterleitenV3NachgespraechZustimmungErforderlich)
-                      }
-                    />
-                    Wir werden uns per E-Mail bei Ihnen melden und in den nächsten Wochen ein Nachgespräch sowie eine weitere
-                    Beratung anbieten.
-                  </label>
+                  {(weiterleitenPopupVersion === 3 || !weiterleitenV2EmailStreckeSichtbar) && (
+                    <label
+                      className={`weiterleiten-consent ${!zustimmungNachgespraechBeratung ? 'weiterleiten-option-unchecked' : ''}${weiterleitenIstV2OderV3 && !weiterleitenV2V3NachgespraechZustimmungErforderlich ? ' weiterleiten-consent--optional' : ''}`}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={zustimmungNachgespraechBeratung}
+                        onChange={(e) => setZustimmungNachgespraechBeratung(e.target.checked)}
+                        aria-required={
+                          weiterleitenPopupVersion === 1 ||
+                          (weiterleitenIstV2OderV3 && weiterleitenV2V3NachgespraechZustimmungErforderlich)
+                        }
+                      />
+                      Wir werden uns per E-Mail bei Ihnen melden und in den nächsten Wochen ein Nachgespräch sowie eine weitere
+                      Beratung anbieten.
+                    </label>
+                  )}
                 </div>
               )}
             </div>
@@ -1473,11 +1475,6 @@ const AnfrageSitzlift: React.FC = () => {
                 {weiterleitenPopupVersion === 1 && (
                   <div className="weiterleiten-note">
                     Super - die umsatzstärkste Anbieterauswahl wurde ausgewählt!
-                  </div>
-                )}
-                {weiterleitenV3BonusWarnungBannerSichtbar && (
-                  <div className="weiterleiten-bonus-warnung-banner" role="alert">
-                    Deine Bonus-Berechtigung verschlechtert sich.
                   </div>
                 )}
                 <div className="weiterleiten-actions">
